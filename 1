@@ -1,0 +1,234 @@
+FROM pytorch/pytorch:2.5.1-cuda12.1-cudnn9-runtime
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    curl \
+    software-properties-common \
+    git \
+    python3 \
+    python3-pip \
+    vim \
+    && rm -rf /var/lib/apt/lists/*  # Clean up APT when done
+
+# Copy requirements.txt specifically
+COPY requirements.txt /app/
+
+# Copy all other files to /app
+COPY . /app
+
+EXPOSE 8001
+
+RUN pip3 install --upgrade pip
+RUN pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+#RUN pip install fastapi
+# Install required packages including Accelerate
+RUN pip3 install --no-cache-dir -r requirements.txt
+RUN pip3 install --no-cache-dir 'accelerate>=0.26.0'
+
+CMD ["python3", "server.py", "--server.port=8001", "--server.address=0.0.0.0"]
+ File "/opt/conda/lib/python3.11/site-packages/torch/utils/cpp_extension.py", line 2416, in _join_cuda_home
+image_gen-1  |     raise OSError('CUDA_HOME environment variable is not set. '
+image_gen-1  | OSError: CUDA_HOME environment variable is not set. Please set it to your CUDA install root.
+image_gen-1  | INFO:     10.20.125.134:52348 - "POST /predict HTTP/1.1" 500 Internal Server Error
+image_gen-1  | ERROR:    Exception in ASGI application
+image_gen-1  | Traceback (most recent call last):
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/uvicorn/protocols/http/httptools_impl.py", line 401, in run_asgi
+image_gen-1  |     result = await app(  # type: ignore[func-returns-value]
+image_gen-1  |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+image_gen-1  |     return await self.app(scope, receive, send)
+image_gen-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/fastapi/applications.py", line 1054, in __call__
+image_gen-1  |     await super().__call__(scope, receive, send)
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/starlette/applications.py", line 113, in __call__
+image_gen-1  |     await self.middleware_stack(scope, receive, send)
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/starlette/middleware/errors.py", line 187, in __call__
+image_gen-1  |     raise exc
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/starlette/middleware/errors.py", line 165, in __call__
+image_gen-1  |     await self.app(scope, receive, _send)
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/litserve/middlewares.py", line 69, in __call__
+image_gen-1  |     await self.app(scope, receive, send)
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/litserve/middlewares.py", line 69, in __call__
+image_gen-1  |     await self.app(scope, receive, send)
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/starlette/middleware/gzip.py", line 20, in __call__
+image_gen-1  |     await responder(scope, receive, send)
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/starlette/middleware/gzip.py", line 39, in __call__
+image_gen-1  |     await self.app(scope, receive, self.send_with_gzip)
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/starlette/middleware/exceptions.py", line 62, in __call__
+image_gen-1  |     await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+image_gen-1  |     raise exc
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+image_gen-1  |     await app(scope, receive, sender)
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/starlette/routing.py", line 715, in __call__
+image_gen-1  |     await self.middleware_stack(scope, receive, send)
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/starlette/routing.py", line 735, in app
+image_gen-1  |     await route.handle(scope, receive, send)
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/starlette/routing.py", line 288, in handle
+image_gen-1  |     await self.app(scope, receive, send)
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/starlette/routing.py", line 76, in app
+image_gen-1  |     await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+image_gen-1  |     raise exc
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+image_gen-1  |     await app(scope, receive, sender)
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/starlette/routing.py", line 73, in app
+image_gen-1  |     response = await f(request)
+image_gen-1  |                ^^^^^^^^^^^^^^^^
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/fastapi/routing.py", line 301, in app
+image_gen-1  |     raw_response = await run_endpoint_function(
+image_gen-1  |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/fastapi/routing.py", line 212, in run_endpoint_function
+image_gen-1  |     return await dependant.call(**values)
+image_gen-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/litserve/server.py", line 365, in predict
+image_gen-1  |     raise response
+image_gen-1  | OSError: CUDA_HOME environment variable is not set. Please set it to your CUDA install root.
+image_gen-1  | LitAPI ran into an error while processing the request uid=10b764d6-3499-4524-b567-a909cc23e76d.
+image_gen-1  | Please check the error trace for more details.
+image_gen-1  | Traceback (most recent call last):
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/litserve/loops.py", line 134, in run_single_loop
+image_gen-1  |     y = _inject_context(
+image_gen-1  |         ^^^^^^^^^^^^^^^^
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/litserve/loops.py", line 55, in _inject_context
+image_gen-1  |     return func(*args, **kwargs)
+image_gen-1  |            ^^^^^^^^^^^^^^^^^^^^^
+image_gen-1  |   File "/app/server.py", line 49, in predict
+image_gen-1  |     image = self.pipe(
+image_gen-1  |             ^^^^^^^^^^
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/torch/utils/_contextlib.py", line 116, in decorate_context
+image_gen-1  |     return func(*args, **kwargs)
+image_gen-1  |            ^^^^^^^^^^^^^^^^^^^^^
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/diffusers/pipelines/flux/pipeline_flux.py", line 669, in __call__
+image_gen-1  |     ) = self.encode_prompt(
+image_gen-1  |         ^^^^^^^^^^^^^^^^^^^
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/diffusers/pipelines/flux/pipeline_flux.py", line 356, in encode_prompt
+image_gen-1  |     prompt_embeds = self._get_t5_prompt_embeds(
+image_gen-1  |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/diffusers/pipelines/flux/pipeline_flux.py", line 242, in _get_t5_prompt_embeds
+image_gen-1  |     prompt_embeds = self.text_encoder_2(text_input_ids.to(device), output_hidden_states=False)[0]
+image_gen-1  |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+image_gen-1  |     return self._call_impl(*args, **kwargs)
+image_gen-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+image_gen-1  |     return forward_call(*args, **kwargs)
+image_gen-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/accelerate/hooks.py", line 165, in new_forward
+image_gen-1  |     args, kwargs = module._hf_hook.pre_forward(module, *args, **kwargs)
+image_gen-1  |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/accelerate/hooks.py", line 702, in pre_forward
+image_gen-1  |     module.to(self.execution_device)
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/transformers/modeling_utils.py", line 3157, in to
+image_gen-1  |     return super().to(*args, **kwargs)
+image_gen-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1340, in to
+image_gen-1  |     return self._apply(convert)
+image_gen-1  |            ^^^^^^^^^^^^^^^^^^^^
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/torch/nn/modules/module.py", line 900, in _apply
+image_gen-1  |     module._apply(fn)
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/torch/nn/modules/module.py", line 900, in _apply
+image_gen-1  |     module._apply(fn)
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/torch/nn/modules/module.py", line 900, in _apply
+image_gen-1  |     module._apply(fn)
+image_gen-1  |   [Previous line repeated 4 more times]
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/torch/nn/modules/module.py", line 927, in _apply
+image_gen-1  |     param_applied = fn(param)
+image_gen-1  |                     ^^^^^^^^^
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1326, in convert
+image_gen-1  |     return t.to(
+image_gen-1  |            ^^^^^
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/optimum/quanto/tensor/weights/qbytes.py", line 272, in __torch_function__
+image_gen-1  |     return func(*args, **kwargs)
+image_gen-1  |            ^^^^^^^^^^^^^^^^^^^^^
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/optimum/quanto/tensor/weights/qbytes.py", line 298, in __torch_dispatch__
+image_gen-1  |     return WeightQBytesTensor.create(
+image_gen-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/optimum/quanto/tensor/weights/qbytes.py", line 139, in create
+image_gen-1  |     return MarlinF8QBytesTensor(qtype, axis, size, stride, data, scale, requires_grad)
+image_gen-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/optimum/quanto/tensor/weights/marlin/fp8/qbits.py", line 79, in __init__
+image_gen-1  |     data_packed = MarlinF8PackedTensor.pack(data)  # pack fp8 data to in32, and apply marlier re-ordering.
+image_gen-1  |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/optimum/quanto/tensor/weights/marlin/fp8/packed.py", line 183, in pack
+image_gen-1  |     data_int32 = torch.ops.quanto.pack_fp8_marlin(
+image_gen-1  |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/torch/_ops.py", line 1116, in __call__
+image_gen-1  |     return self._op(*args, **(kwargs or {}))
+image_gen-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/optimum/quanto/library/extensions/cuda/__init__.py", line 167, in gptq_marlin_repack
+image_gen-1  |     return ext.lib.gptq_marlin_repack(b_q_weight, perm, size_k, size_n, num_bits)
+image_gen-1  |            ^^^^^^^
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/optimum/quanto/library/extensions/extension.py", line 44, in lib
+image_gen-1  |     self._lib = load(
+image_gen-1  |                 ^^^^^
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/torch/utils/cpp_extension.py", line 1314, in load
+image_gen-1  |     return _jit_compile(
+image_gen-1  |            ^^^^^^^^^^^^^
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/torch/utils/cpp_extension.py", line 1746, in _jit_compile
+image_gen-1  |     return _import_module_from_library(name, build_directory, is_python_module)
+image_gen-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/torch/utils/cpp_extension.py", line 2140, in _import_module_from_library
+image_gen-1  |     module = importlib.util.module_from_spec(spec)
+image_gen-1  |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+image_gen-1  |   File "<frozen importlib._bootstrap>", line 573, in module_from_spec
+image_gen-1  |   File "<frozen importlib._bootstrap_external>", line 1233, in create_module
+image_gen-1  |   File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+image_gen-1  | ImportError: /opt/conda/lib/python3.11/site-packages/optimum/quanto/library/extensions/cuda/build/quanto_cuda.so: cannot open shared object file: No such file or directory
+image_gen-1  | INFO:     10.20.125.134:63002 - "POST /predict HTTP/1.1" 500 Internal Server Error
+image_gen-1  | ERROR:    Exception in ASGI application
+image_gen-1  | Traceback (most recent call last):
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/uvicorn/protocols/http/httptools_impl.py", line 401, in run_asgi
+image_gen-1  |     result = await app(  # type: ignore[func-returns-value]
+image_gen-1  |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+image_gen-1  |     return await self.app(scope, receive, send)
+image_gen-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/fastapi/applications.py", line 1054, in __call__
+image_gen-1  |     await super().__call__(scope, receive, send)
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/starlette/applications.py", line 113, in __call__
+image_gen-1  |     await self.middleware_stack(scope, receive, send)
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/starlette/middleware/errors.py", line 187, in __call__
+image_gen-1  |     raise exc
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/starlette/middleware/errors.py", line 165, in __call__
+image_gen-1  |     await self.app(scope, receive, _send)
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/litserve/middlewares.py", line 69, in __call__
+image_gen-1  |     await self.app(scope, receive, send)
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/litserve/middlewares.py", line 69, in __call__
+image_gen-1  |     await self.app(scope, receive, send)
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/starlette/middleware/gzip.py", line 20, in __call__
+image_gen-1  |     await responder(scope, receive, send)
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/starlette/middleware/gzip.py", line 39, in __call__
+image_gen-1  |     await self.app(scope, receive, self.send_with_gzip)
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/starlette/middleware/exceptions.py", line 62, in __call__
+image_gen-1  |     await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+image_gen-1  |     raise exc
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+image_gen-1  |     await app(scope, receive, sender)
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/starlette/routing.py", line 715, in __call__
+image_gen-1  |     await self.middleware_stack(scope, receive, send)
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/starlette/routing.py", line 735, in app
+image_gen-1  |     await route.handle(scope, receive, send)
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/starlette/routing.py", line 288, in handle
+image_gen-1  |     await self.app(scope, receive, send)
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/starlette/routing.py", line 76, in app
+image_gen-1  |     await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+image_gen-1  |     raise exc
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+image_gen-1  |     await app(scope, receive, sender)
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/starlette/routing.py", line 73, in app
+image_gen-1  |     response = await f(request)
+image_gen-1  |                ^^^^^^^^^^^^^^^^
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/fastapi/routing.py", line 301, in app
+image_gen-1  |     raw_response = await run_endpoint_function(
+image_gen-1  |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/fastapi/routing.py", line 212, in run_endpoint_function
+image_gen-1  |     return await dependant.call(**values)
+image_gen-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+image_gen-1  |   File "/opt/conda/lib/python3.11/site-packages/litserve/server.py", line 365, in predict
+image_gen-1  |     raise response
+image_gen-1  | ImportError: /opt/conda/lib/python3.11/site-packages/optimum/quanto/library/extensions/cuda/build/quanto_cuda.so: cannot open shared object file: No such file or directory
+
